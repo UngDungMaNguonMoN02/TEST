@@ -52,7 +52,8 @@ public class MainActivity extends AppCompatActivity
         mediaPlayer = new MediaPlayer();
         try  //Thay "audio.mp3" bằng đường dẫn khác
         {
-            AssetFileDescriptor afd = getAssets().openFd("audio.mp3");
+            //AssetFileDescriptor afd = getAssets().openFd("audio.mp3");
+            AssetFileDescriptor afd = getAssets().openFd("newfolder/audio2.mp3");
             mediaPlayer.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
         }
         catch (Exception ex)
