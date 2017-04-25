@@ -2,6 +2,6 @@
     <string name="app_name">PlayAudioTest</string>
     <string name="play"><![CDATA[▶]]></string>
     <string name="stop"><![CDATA[◼]]></string>
-    <string name="restart"><![CDATA[⟳]]></string>
+    <string name="restart">Restart</string>
     <string name="pause"><![CDATA[❚❚]]></string>
 </resources>

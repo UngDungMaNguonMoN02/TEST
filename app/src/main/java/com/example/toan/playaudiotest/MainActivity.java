@@ -87,9 +87,7 @@ public class MainActivity extends AppCompatActivity
                 m_Handler.removeCallbacks(UpdateAudioTime);
                 int totalDuration = mediaPlayer.getDuration();
                 int currentPosition = seekBar.getProgress();
-
                 mediaPlayer.seekTo(currentPosition);
-
                 m_Handler.postDelayed(UpdateAudioTime, 100);
             }
         });
