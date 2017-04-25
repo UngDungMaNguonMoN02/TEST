@@ -4,6 +4,7 @@ import android.content.res.AssetFileDescriptor;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.media.MediaPlayer;
+import java.util.*;
 
 import android.os.Handler;
 import android.view.View;
@@ -34,7 +35,8 @@ public class MainActivity extends AppCompatActivity
 
     public static int oneTimeOnly = 0;
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -61,12 +63,36 @@ public class MainActivity extends AppCompatActivity
             ;
         }
 
-
-
-
         seekbar = (SeekBar)findViewById(R.id.seekBar);
-        seekbar.setClickable(false);
+        seekbar.setClickable(true);
         bt2.setEnabled(false);
+
+        seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+        {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b)
+            {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar)
+            {
+                m_Handler.removeCallbacks(UpdateAudioTime);
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar)
+            {
+                m_Handler.removeCallbacks(UpdateAudioTime);
+                int totalDuration = mediaPlayer.getDuration();
+                int currentPosition = seekBar.getProgress();
+
+                mediaPlayer.seekTo(currentPosition);
+
+                m_Handler.postDelayed(UpdateAudioTime, 100);
+            }
+        });
 
         bt3.setOnClickListener(new View.OnClickListener()
         {
@@ -93,11 +119,11 @@ public class MainActivity extends AppCompatActivity
                     seekbar.setMax((int) finalTime);
                     oneTimeOnly = 1;
                 }
-                tx2.setText(String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes((long) finalTime), TimeUnit.MILLISECONDS.toSeconds((long) finalTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) finalTime))));
-                tx1.setText(String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes((long) startTime), TimeUnit.MILLISECONDS.toSeconds((long) startTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) startTime))));
+                tx2.setText(String.format("%d:%02d", TimeUnit.MILLISECONDS.toMinutes((long) finalTime), TimeUnit.MILLISECONDS.toSeconds((long) finalTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) finalTime))));
+                tx1.setText(String.format("%d:%02d", TimeUnit.MILLISECONDS.toMinutes((long) startTime), TimeUnit.MILLISECONDS.toSeconds((long) startTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) startTime))));
 
                 seekbar.setProgress((int)startTime);
-                m_Handler.postDelayed(UpdateSongTime,100);
+                m_Handler.postDelayed(UpdateAudioTime,100);
                 bt2.setEnabled(true);
                 bt3.setEnabled(false);
             }
@@ -108,7 +134,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                Toast.makeText(getApplicationContext(), "Pausing audio",Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Audio paused",Toast.LENGTH_SHORT).show();
                 mediaPlayer.pause();
                 bt2.setEnabled(false);
                 bt3.setEnabled(true);
@@ -120,18 +146,20 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                int temp = (int)startTime;
-
-                if((temp+forwardTime)<=finalTime)
+                mediaPlayer.seekTo(0);
+                seekbar.setProgress(0);
+                if(!mediaPlayer.isPlaying())
                 {
-                    startTime = startTime + forwardTime;
-                    mediaPlayer.seekTo((int) startTime);
-                    Toast.makeText(getApplicationContext(),"You have Jumped forward 5 seconds", Toast.LENGTH_SHORT).show();
+                    bt2.setEnabled(false);
+                    bt3.setEnabled(true);
+                    tx1.setText("0:00");
                 }
                 else
                 {
-                    Toast.makeText(getApplicationContext(),"Cannot jump forward 5 seconds", Toast.LENGTH_SHORT).show();
+                    bt2.setEnabled(true);
+                    bt3.setEnabled(false);
                 }
+                Toast.makeText(getApplicationContext(),"Audio restarted", Toast.LENGTH_SHORT).show();
             }
         });
         bt4.setOnClickListener(new View.OnClickListener()
@@ -139,29 +167,29 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                int temp = (int)startTime;
-
-                if((temp-backwardTime)>0)
-                {
-                    startTime = startTime - backwardTime;
-                    mediaPlayer.seekTo((int) startTime);
-                    Toast.makeText(getApplicationContext(),"You have Jumped backward 5 seconds",Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    Toast.makeText(getApplicationContext(),"Cannot jump backward 5 seconds",Toast.LENGTH_SHORT).show();
-                }
+                mediaPlayer.seekTo(0);
+                seekbar.setProgress(0);
+                mediaPlayer.pause();
+                Toast.makeText(getApplicationContext(),"Audio stopped",Toast.LENGTH_SHORT).show();
+                tx1.setText("0:00");
+                bt3.setEnabled(true);
+                bt2.setEnabled(false);
             }
         });
     }
 
-    private Runnable UpdateSongTime = new Runnable()
+    private Runnable UpdateAudioTime = new Runnable()
     {
-        public void run() {
+        public void run()
+        {
+            if(mediaPlayer.isPlaying())
+            {
             startTime = mediaPlayer.getCurrentPosition();
-            tx1.setText(String.format("%d min, %d sec", TimeUnit.MILLISECONDS.toMinutes((long) startTime), TimeUnit.MILLISECONDS.toSeconds((long) startTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) startTime))));
+            tx1.setText(String.format("%d:%02d", TimeUnit.MILLISECONDS.toMinutes((long) startTime), TimeUnit.MILLISECONDS.toSeconds((long) startTime) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes((long) startTime))));
             seekbar.setProgress((int)startTime);
             m_Handler.postDelayed(this, 100);
+            }
         }
     };
+
 }
